@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-
 try:
     from sklearn.linear_model import LinearRegression  # type: ignore[import-not-found]
 except ImportError:  # Fallback para entornos sin scikit-learn instalado
