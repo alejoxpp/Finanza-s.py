@@ -1,6 +1,30 @@
 import pandas as pd
 import numpy as np
-from sklearn.linear_model import LinearRegression
+
+try:
+    from sklearn.linear_model import LinearRegression  # type: ignore[import-not-found]
+except ImportError:  # Fallback para entornos sin scikit-learn instalado
+    class LinearRegression:
+        def fit(self, X, y):
+            X = np.asarray(X, dtype=float)
+            y = np.asarray(y, dtype=float)
+
+            if X.ndim == 1:
+                X = X.reshape(-1, 1)
+
+            X_design = np.column_stack([np.ones(len(X)), X])
+            coef, _, _, _ = np.linalg.lstsq(X_design, y, rcond=None)
+
+            self.intercept_ = coef[0]
+            self.coef_ = coef[1:]
+            return self
+
+        def predict(self, X):
+            X = np.asarray(X, dtype=float)
+            if X.ndim == 1:
+                X = X.reshape(-1, 1)
+            return self.intercept_ + X @ self.coef_
+
 
 def cargar_datos(conexion, id_usuario: int) -> pd.DataFrame:
     query = """
