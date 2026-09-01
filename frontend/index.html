@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finance Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">F</div>
+          <div>
+            <p class="eyebrow">Dashboard</p>
+            <h1>Finance Hub</h1>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-item active" data-view="overview">
+            <span>Resumen</span>
+          </button>
+          <button class="nav-item" data-view="movimientos">
+            <span>Movimientos</span>
+          </button>
+          <button class="nav-item" data-view="analitica">
+            <span>Analítica</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-card">
+          <p class="eyebrow">Estado</p>
+          <h3 id="status-label">Estable</h3>
+          <p id="status-text">Tu flujo financiero está bajo control.</p>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Bienvenido</p>
+            <h2>Tu panel financiero</h2>
+          </div>
+          <button id="new-movement-btn" class="primary-btn">+ Nuevo movimiento</button>
+        </header>
+
+        <section id="overview" class="view active">
+          <div class="kpis-grid">
+            <article class="kpi-card income">
+              <div class="kpi-meta">
+                <span>Ingresos</span>
+                <span class="tag success">+ mes</span>
+              </div>
+              <strong id="total-ingresos">$0</strong>
+            </article>
+
+            <article class="kpi-card expense">
+              <div class="kpi-meta">
+                <span>Gastos</span>
+                <span class="tag danger">revisión</span>
+              </div>
+              <strong id="total-gastos">$0</strong>
+            </article>
+
+            <article class="kpi-card balance">
+              <div class="kpi-meta">
+                <span>Balance</span>
+                <span class="tag neutral">ahorro</span>
+              </div>
+              <strong id="total-balance">$0</strong>
+            </article>
+
+            <article class="kpi-card forecast">
+              <div class="kpi-meta">
+                <span>Predicción</span>
+                <span class="tag info">mes siguiente</span>
+              </div>
+              <strong id="prediccion-mes">$0</strong>
+            </article>
+          </div>
+
+          <div class="insight-row">
+            <div class="insight-card big">
+              <div class="section-head">
+                <h3>Insights</h3>
+                <span class="chip">IA financiera</span>
+              </div>
+              <ul id="insights-list" class="insights-list">
+                <li>Cargando análisis...</li>
+              </ul>
+            </div>
+
+            <div class="insight-card alerts">
+              <div class="section-head">
+                <h3>Alertas</h3>
+                <span class="chip warning">Atención</span>
+              </div>
+              <div id="alerts-container" class="alerts-list">
+                <p>No se detectaron anomalías.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-grid">
+            <div class="panel-card chart-card">
+              <div class="section-head">
+                <h3>Gastos por categoría</h3>
+              </div>
+              <canvas id="chart-categorias"></canvas>
+            </div>
+
+            <div class="panel-card chart-card">
+              <div class="section-head">
+                <h3>Ingresos vs gastos</h3>
+              </div>
+              <canvas id="chart-tendencia"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section id="movimientos" class="view">
+          <div class="panel-card">
+            <div class="section-head">
+              <h3>Movimientos recientes</h3>
+              <button id="refresh-data" class="ghost-btn">Actualizar</button>
+            </div>
+
+            <div class="filters-row">
+              <input id="filter-desde" type="date" />
+              <input id="filter-hasta" type="date" />
+              <select id="filter-categoria">
+                <option value="">Todas las categorías</option>
+              </select>
+              <button id="apply-filters" class="secondary-btn">Filtrar</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Categoría</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th>Monto</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="movimientos-table-body">
+                  <tr>
+                    <td colspan="6" class="empty-state">Cargando movimientos...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="analitica" class="view">
+          <div class="panel-card">
+            <div class="section-head">
+              <h3>Analítica avanzada</h3>
+            </div>
+            <div class="analytics-grid">
+              <div>
+                <p class="stat-label">Ahorro neto</p>
+                <h4 id="ahorro-neto">$0</h4>
+              </div>
+              <div>
+                <p class="stat-label">Ahorro %</p>
+                <h4 id="ahorro-porcentaje">0%</h4>
+              </div>
+              <div>
+                <p class="stat-label">Mayor gasto mensual</p>
+                <h4 id="gasto-maximo">$0</h4>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="modal-backdrop" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Nuevo movimiento</h3>
+          <button id="close-modal" class="icon-btn">×</button>
+        </div>
+
+        <form id="movement-form" class="movement-form">
+          <div class="field-group">
+            <label for="tipo">Tipo</label>
+            <select id="tipo" required>
+              <option value="gasto">Gasto</option>
+              <option value="ingreso">Ingreso</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="monto">Monto</label>
+            <input id="monto" type="number" min="0.01" step="0.01" required placeholder="0.00" />
+          </div>
+
+          <div class="field-group">
+            <label for="fecha">Fecha</label>
+            <input id="fecha" type="date" required />
+          </div>
+
+          <div class="field-group">
+            <label for="categoria">Categoría</label>
+            <select id="categoria" required></select>
+          </div>
+
+          <div class="field-group full">
+            <label for="descripcion">Descripción</label>
+            <input id="descripcion" type="text" maxlength="255" placeholder="Ej. supermercado, salario, transporte" />
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="cancel-movement" class="ghost-btn">Cancelar</button>
+            <button type="submit" class="primary-btn">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
