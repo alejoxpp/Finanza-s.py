@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from backend.modelos.database import get_db
-from backend.servicios.analitica_service import anomalias_usuario, prediccion_usuario, resumen_usuario
+from backend.servicios.analitica_service import (
+    anomalias_usuario,
+    prediccion_usuario,
+    resumen_usuario,
+    insights_usuario,
+)
 
 router = APIRouter(tags=["analitica"])
 
@@ -40,3 +45,14 @@ def anomalias_endpoint(
         return {"data": anomalias_usuario(db, id_usuario, umbral_z=umbral_z)}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Error al detectar anomalías: {str(exc)}") from exc
+
+
+@router.get("/api/analitica/insights")
+def insights_endpoint(
+    id_usuario: int = Query(..., description="ID del usuario"),
+    db: Session = Depends(get_db),
+):
+    try:
+        return {"data": insights_usuario(db, id_usuario)}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Error al calcular los insights: {str(exc)}") from exc

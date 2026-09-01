@@ -80,3 +80,86 @@ def prediccion_usuario(db: Session, id_usuario: int):
 def anomalias_usuario(db: Session, id_usuario: int, umbral_z: float = 2.0):
     df = obtener_historico_usuario(db, id_usuario)
     return detectar_anomalias(df, umbral_z=umbral_z)
+
+
+def insights_usuario(db: Session, id_usuario: int) -> dict:
+    """Devuelve insight analíticos: categoría más costosa (mes e histórico) y
+    tendencia mensual de ingresos/gastos/ahorro calculada con Pandas."""
+    df = obtener_historico_usuario(db, id_usuario)
+
+    if df is None or df.empty:
+        return {
+            "categoria_mas_costosa_mes": None,
+            "categoria_mas_costosa_historico": None,
+            "tendencia_mensual": [],
+        }
+
+    df = df.copy()
+    df["fecha"] = pd.to_datetime(df["fecha"])
+    df["mes"] = df["fecha"].dt.to_period("M").astype(str)
+    df["monto"] = pd.to_numeric(df["monto"], errors="coerce").fillna(0)
+
+    gastos = df[df["tipo"] == "gasto"]
+
+    # --- Histórico ---
+    categoria_mas_costosa_historico = None
+    if not gastos.empty:
+        top_hist = (
+            gastos.groupby("categoria", as_index=False)["monto"]
+            .sum()
+            .sort_values("monto", ascending=False)
+            .iloc[0]
+        )
+        categoria_mas_costosa_historico = {
+            "categoria": str(top_hist["categoria"]),
+            "total": round(float(top_hist["monto"]), 2),
+        }
+
+    # --- Mes más reciente (o el que tenga el último movimiento de gasto) ---
+    categoria_mas_costosa_mes = None
+    if not gastos.empty:
+        ultimo_mes = str(gastos["mes"].max())
+        gastos_mes = gastos[gastos["mes"] == ultimo_mes]
+        top_mes = (
+            gastos_mes.groupby("categoria", as_index=False)["monto"]
+            .sum()
+            .sort_values("monto", ascending=False)
+            .iloc[0]
+        )
+        categoria_mas_costosa_mes = {
+            "mes": ultimo_mes,
+            "categoria": str(top_mes["categoria"]),
+            "total": round(float(top_mes["monto"]), 2),
+        }
+
+    # --- Tendencia mensual ---
+    tabla_mes = (
+        df.groupby(["mes", "tipo"], as_index=False)["monto"]
+        .sum()
+        .pivot(index="mes", columns="tipo", values="monto")
+        .fillna(0)
+        .reset_index()
+    )
+
+    tendencia_mensual = []
+    for _, row in tabla_mes.iterrows():
+        ingresos = float(row.get("ingreso", 0))
+        gastos_m = float(row.get("gasto", 0))
+        ahorro = ingresos - gastos_m
+        tendencia_mensual.append(
+            {
+                "mes": row["mes"],
+                "ingresos": round(ingresos, 2),
+                "gastos": round(gastos_m, 2),
+                "ahorro": round(ahorro, 2),
+                "ahorro_porcentaje": round((ahorro / ingresos * 100) if ingresos else 0.0, 2),
+            }
+        )
+
+    tendencia_mensual.sort(key=lambda item: item["mes"])
+
+    return {
+        "categoria_mas_costosa_mes": categoria_mas_costosa_mes,
+        "categoria_mas_costosa_historico": categoria_mas_costosa_historico,
+        "tendencia_mensual": tendencia_mensual,
+    }

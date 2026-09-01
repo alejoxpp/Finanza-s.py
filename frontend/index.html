@@ -11,7 +11,53 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
-    <div class="app-shell">
+    <div id="app-auth" class="auth-wrap">
+      <div class="auth-card">
+        <div class="auth-brand">
+          <div class="brand-mark">F</div>
+          <div>
+            <p class="eyebrow">Dashboard</p>
+            <h1>Finance Hub</h1>
+          </div>
+        </div>
+
+        <div class="auth-tabs" role="tablist">
+          <button type="button" class="auth-tab active" data-auth-tab="login">Iniciar sesión</button>
+          <button type="button" class="auth-tab" data-auth-tab="register">Registrarse</button>
+        </div>
+
+        <form id="login-form" class="auth-pane">
+          <div class="field-group">
+            <label for="login-usuario">Usuario</label>
+            <select id="login-usuario" required>
+              <option value="">Selecciona tu usuario...</option>
+            </select>
+          </div>
+          <button type="submit" class="primary-btn">Entrar al panel</button>
+          <p class="auth-hint">No apareces? Usa la pestaña <strong>Registrarse</strong> para crear tu cuenta.</p>
+          <p id="login-message" class="auth-message"></p>
+        </form>
+
+        <form id="register-form" class="auth-pane hidden">
+          <div class="field-group">
+            <label for="register-nombre">Nombre completo</label>
+            <input id="register-nombre" type="text" maxlength="100" required placeholder="Tu nombre" />
+          </div>
+          <div class="field-group">
+            <label for="register-correo">Correo</label>
+            <input id="register-correo" type="email" required placeholder="tucorreo@email.com" />
+          </div>
+          <div class="field-group">
+            <label for="register-contrasena">Contraseña</label>
+            <input id="register-contrasena" type="password" minlength="6" required placeholder="Mínimo 6 caracteres" />
+          </div>
+          <button type="submit" class="primary-btn">Crear cuenta y entrar</button>
+          <p id="register-message" class="auth-message"></p>
+        </form>
+      </div>
+    </div>
+
+    <div class="app-shell hidden">
       <aside class="sidebar">
         <div class="brand">
           <div class="brand-mark">F</div>
@@ -28,10 +74,20 @@
           <button class="nav-item" data-view="movimientos">
             <span>Movimientos</span>
           </button>
+          <button class="nav-item" data-view="categorias">
+            <span>Categorías</span>
+          </button>
           <button class="nav-item" data-view="analitica">
             <span>Analítica</span>
           </button>
         </nav>
+
+        <div class="sidebar-card user-card">
+          <p class="eyebrow">Sesión</p>
+          <h3 id="user-name">—</h3>
+          <p id="user-email">—</p>
+          <button id="logout-btn" class="ghost-btn sidebar-logout">Cerrar sesión</button>
+        </div>
 
         <div class="sidebar-card">
           <p class="eyebrow">Estado</p>
@@ -44,9 +100,12 @@
         <header class="topbar">
           <div>
             <p class="eyebrow">Bienvenido</p>
-            <h2>Tu panel financiero</h2>
+            <h2 id="topbar-title">Tu panel financiero</h2>
           </div>
-          <button id="new-movement-btn" class="primary-btn">+ Nuevo movimiento</button>
+          <div class="topbar-actions">
+            <button id="open-categories-btn" class="secondary-btn">Gestionar categorías</button>
+            <button id="new-movement-btn" class="primary-btn">+ Nuevo movimiento</button>
+          </div>
         </header>
 
         <section id="overview" class="view active">
@@ -81,6 +140,7 @@
                 <span class="tag info">mes siguiente</span>
               </div>
               <strong id="prediccion-mes">$0</strong>
+              <small id="prediccion-razon" class="stat-sub">Calculando...</small>
             </article>
           </div>
 
@@ -161,6 +221,18 @@
           </div>
         </section>
 
+        <section id="categorias" class="view">
+          <div class="panel-card">
+            <div class="section-head">
+              <h3>Gestión de categorías</h3>
+              <button id="new-category-btn" class="primary-btn">+ Nueva categoría</button>
+            </div>
+            <div id="categorias-list" class="category-inline">
+              <span class="empty-state">Cargando categorías...</span>
+            </div>
+          </div>
+        </section>
+
         <section id="analitica" class="view">
           <div class="panel-card">
             <div class="section-head">
@@ -178,6 +250,12 @@
               <div>
                 <p class="stat-label">Mayor gasto mensual</p>
                 <h4 id="gasto-maximo">$0</h4>
+                <p id="gasto-maximo-categoria" class="stat-sub">—</p>
+              </div>
+              <div>
+                <p class="stat-label">Más costosa histórica</p>
+                <h4 id="categoria-costosa-historico">—</h4>
+                <p id="categoria-costosa-historico-total" class="stat-sub">—</p>
               </div>
             </div>
           </div>
@@ -188,11 +266,13 @@
     <div id="modal-backdrop" class="modal-backdrop hidden">
       <div class="modal-card">
         <div class="modal-header">
-          <h3>Nuevo movimiento</h3>
+          <h3 id="movement-modal-title">Nuevo movimiento</h3>
           <button id="close-modal" class="icon-btn">×</button>
         </div>
 
-        <form id="movement-form" class="movement-form">
+        <form id="movement-form" class="movement-form" novalidate>
+          <input type="hidden" id="movimiento-id" />
+
           <div class="field-group">
             <label for="tipo">Tipo</label>
             <select id="tipo" required>
@@ -221,8 +301,43 @@
             <input id="descripcion" type="text" maxlength="255" placeholder="Ej. supermercado, salario, transporte" />
           </div>
 
+          <p id="movement-form-error" class="form-error hidden"></p>
+
           <div class="form-actions">
             <button type="button" id="cancel-movement" class="ghost-btn">Cancelar</button>
+            <button type="submit" class="primary-btn">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="modal-categoria-backdrop" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="category-modal-title">Nueva categoría</h3>
+          <button id="close-category-modal" class="icon-btn">×</button>
+        </div>
+
+        <form id="category-form" class="movement-form" novalidate>
+          <input type="hidden" id="categoria-id" />
+
+          <div class="field-group">
+            <label for="category-nombre">Nombre</label>
+            <input id="category-nombre" type="text" maxlength="100" required placeholder="Ej. Alimentación" />
+          </div>
+
+          <div class="field-group">
+            <label for="category-tipo">Tipo</label>
+            <select id="category-tipo" required>
+              <option value="gasto">Gasto</option>
+              <option value="ingreso">Ingreso</option>
+            </select>
+          </div>
+
+          <p id="category-form-error" class="form-error hidden"></p>
+
+          <div class="form-actions">
+            <button type="button" id="cancel-category" class="ghost-btn">Cancelar</button>
             <button type="submit" class="primary-btn">Guardar</button>
           </div>
         </form>

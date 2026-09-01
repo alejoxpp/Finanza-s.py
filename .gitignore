@@ -1,0 +1,19 @@
+# Entorno y dependencias
+.vvenv/
+.venv/
+__pycache__/
+*.pyc
+
+# Variables de entorno
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# SO
+Thumbs.db
+.DS_Store
+
+# Base de datos local (si aplica)
+*.sql.bak
